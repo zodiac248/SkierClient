@@ -38,6 +38,9 @@ public class ThreadManager {
         }
 
         Collections.sort(latencies);
+        System.out.println("all requests has been sent, "+successRequests+" success");
+        System.out.println(200000-successRequests+" requests failed");
+        System.out.println("total time is "+(endTime-startTime)+"ms");
         System.out.println("mean latency is "+((double)totalTime/200000)+"ms");
         System.out.println("throughput is "+(1000*((double)200000/(endTime-startTime))+"requests per second"));
         System.out.println("median latency is "+percentile(latencies,50)+"ms");
