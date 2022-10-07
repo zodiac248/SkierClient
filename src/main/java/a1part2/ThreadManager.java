@@ -10,14 +10,17 @@ public class ThreadManager {
     private int remainRequests;
     private int successRequests;
     private Vector<Long> latencies;
-
-    public ThreadManager(int totalRequest){
+    private int maxRequestsPerThread;
+    private int numThread;
+    public ThreadManager(int totalRequest, int maxRequestsPerThread, int numThread){
         latencies = new Vector<>();
         this.linkedBlockingQueue = new LinkedBlockingQueue();
         this.dataGenerator = new DataGenerator(linkedBlockingQueue);
         this.totalRequest = totalRequest;
         this.remainRequests = totalRequest;
         this.successRequests = 0;
+        this.maxRequestsPerThread=maxRequestsPerThread;
+        this.numThread=numThread;
     }
 
 
@@ -25,10 +28,10 @@ public class ThreadManager {
     public int sendRequest(){
         long startTime = System.currentTimeMillis();
         new Thread(dataGenerator).start();
-        sendRequestBatch(32);
+        sendRequestBatch(this.numThread,this.totalRequest);
         while(this.remainRequests>0){
-            int batchSize = Math.min(32,(int)Math.ceil(this.remainRequests/1000));
-            sendRequestBatch(batchSize);
+            int batchSize = Math.min(this.numThread*this.maxRequestsPerThread,this.remainRequests);
+            sendRequestBatch(Math.min(this.remainRequests,this.numThread), batchSize);
         }
         long endTime = System.currentTimeMillis();
         long totalTime = 0;
@@ -38,11 +41,12 @@ public class ThreadManager {
         }
 
         Collections.sort(latencies);
+        System.out.println("number of threads: "+this.numThread);
         System.out.println("all requests has been sent, "+successRequests+" success");
-        System.out.println(200000-successRequests+" requests failed");
+        System.out.println(this.totalRequest-successRequests+" requests failed");
         System.out.println("total time is "+(endTime-startTime)+"ms");
-        System.out.println("mean latency is "+((double)totalTime/200000)+"ms");
-        System.out.println("throughput is "+(1000*((double)200000/(endTime-startTime))+"requests per second"));
+        System.out.println("mean latency is "+((double)totalTime/this.totalRequest)+"ms");
+        System.out.println("throughput is "+(1000*((double)this.totalRequest/(endTime-startTime))+"requests per second"));
         System.out.println("median latency is "+percentile(latencies,50)+"ms");
         System.out.println("99 percentile latency is "+percentile(latencies,99)+"ms");
         System.out.println("min latency is "+latencies.get(0)+"ms");
@@ -51,14 +55,14 @@ public class ThreadManager {
         return this.successRequests;
     }
 
-    public void sendRequestBatch(int batchSize){
+    public void sendRequestBatch(int threadNum, int batchSize){
         //this number keeps track of the number of requests send(not neccessarily successful)
         ArrayList<Future<Integer>> futures = new ArrayList<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(batchSize);
-        for (int i = 0; i < batchSize; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+        for (int i = 0; i < threadNum; i++) {
             //create thread
             Client client = null;
-            int ThreadRequestsNum = Math.min(1000,this.remainRequests);
+            int ThreadRequestsNum = Math.min(batchSize/threadNum,this.remainRequests);
             client = new Client(linkedBlockingQueue,latencies,ThreadRequestsNum);
             this.remainRequests -= ThreadRequestsNum;
             futures.add(executorService.submit(client));

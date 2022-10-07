@@ -1,6 +1,6 @@
 package a1part1;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ThreadManager {
@@ -9,37 +9,49 @@ public class ThreadManager {
     private int totalRequest;
     private int remainRequests;
     private int successRequests;
-    public ThreadManager(int totalRequest){
+    private Vector<Long> latencies;
+    private int maxRequestsPerThread;
+    private int numThread;
+    public ThreadManager(int totalRequest, int maxRequestsPerThread, int numThread){
+        latencies = new Vector<>();
         this.linkedBlockingQueue = new LinkedBlockingQueue();
         this.dataGenerator = new DataGenerator(linkedBlockingQueue);
         this.totalRequest = totalRequest;
         this.remainRequests = totalRequest;
         this.successRequests = 0;
+        this.maxRequestsPerThread=maxRequestsPerThread;
+        this.numThread=numThread;
     }
 
 
 
     public int sendRequest(){
         new Thread(dataGenerator).start();
-        sendRequestBatch(32);
+        sendRequestBatch(this.numThread,this.totalRequest);
         while(this.remainRequests>0){
-            int batchSize = Math.min(32,(int)Math.ceil(this.remainRequests/1000));
-            sendRequestBatch(batchSize);
+            int batchSize = Math.min(this.numThread*this.maxRequestsPerThread,this.remainRequests);
+            sendRequestBatch(Math.min(this.remainRequests,this.numThread), batchSize);
         }
-        dataGenerator.setLoop(false);
+        long endTime = System.currentTimeMillis();
+        long totalTime = 0;
+        for (long latency:
+                latencies) {
+            totalTime+=latency;
+        }
 
+        dataGenerator.setLoop(false);
         return this.successRequests;
     }
 
-    public void sendRequestBatch(int batchSize){
+    public void sendRequestBatch(int threadNum, int batchSize){
         //this number keeps track of the number of requests send(not neccessarily successful)
         ArrayList<Future<Integer>> futures = new ArrayList<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(batchSize);
-        for (int i = 0; i < batchSize; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+        for (int i = 0; i < threadNum; i++) {
             //create thread
             Client client = null;
-            int ThreadRequestsNum = Math.min(1000,this.remainRequests);
-            client = new Client(linkedBlockingQueue,ThreadRequestsNum);
+            int ThreadRequestsNum = Math.min(batchSize/threadNum,this.remainRequests);
+            client = new Client(linkedBlockingQueue,latencies,ThreadRequestsNum);
             this.remainRequests -= ThreadRequestsNum;
             futures.add(executorService.submit(client));
         }
@@ -55,5 +67,8 @@ public class ThreadManager {
         }
         executorService.shutdown();
     }
-
+    public static long percentile(Vector<Long> latencies, double percentile) {
+        int index = (int) Math.ceil(percentile / 100.0 * latencies.size());
+        return latencies.get(index-1);
+    }
 }
