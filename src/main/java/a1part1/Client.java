@@ -18,7 +18,6 @@ public class Client implements Callable {
     private LinkedBlockingQueue<SkiRequest> linkedBlockingQueue;
     private SkiersApi apiInstance;
     private ApiClient apiClient;
-    private int successRequest;
     private int failedRequest;
     private Vector<Long> latencies;
     public Client(LinkedBlockingQueue linkedBlockingQueue, Vector latencies, int numRequests) {

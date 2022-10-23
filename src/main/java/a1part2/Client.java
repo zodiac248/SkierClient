@@ -29,7 +29,7 @@ public class Client implements Callable {
         this.apiInstance = new SkiersApi();
         this.failedRequest = 0;
         this.apiClient = new ApiClient();
-        this.apiClient.setBasePath("http://18.236.90.242:8080/lab2");
+        this.apiClient.setBasePath("http://ski-balancer-ca4ee0ecf87c947e.elb.us-west-2.amazonaws.com:8080/Ski");
         this.apiInstance.setApiClient(apiClient);
         this.latencies = latencies;
         try {
