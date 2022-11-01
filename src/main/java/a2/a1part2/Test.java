@@ -1,4 +1,4 @@
-package a1part2;
+package a2.a1part2;
 
 public class Test {
 

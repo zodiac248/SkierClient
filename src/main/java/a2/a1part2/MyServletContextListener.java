@@ -1,0 +1,6 @@
+package a2.a1part2;
+
+import javax.servlet.ServletContextListener;
+
+public class MyServletContextListener implements ServletContextListener {
+}
