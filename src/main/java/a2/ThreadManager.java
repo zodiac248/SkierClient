@@ -1,4 +1,4 @@
-package a2.a1part2;
+package a2;
 
 import java.util.ArrayList;
 import java.util.Collections;

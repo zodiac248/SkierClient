@@ -1,4 +1,4 @@
-package a2.a1part2;
+package a2;
 
 public class SkiRequest {
     private int liftID;

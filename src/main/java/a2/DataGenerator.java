@@ -1,4 +1,4 @@
-package a2.a1part2;
+package a2;
 
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;

@@ -1,4 +1,4 @@
-package a2.a1part2;
+package a2;
 
 import com.opencsv.CSVWriter;
 import io.swagger.client.ApiClient;
